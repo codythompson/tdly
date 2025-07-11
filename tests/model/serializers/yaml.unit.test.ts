@@ -1,9 +1,7 @@
-import { describe, expect, it, should } from "vitest";
+import { describe, expect, it } from "vitest";
 import { YamlGenericSerializer } from "../../../src/model/serializers/yaml/yaml";
 import { readFileSync } from "fs";
 import path from "path";
-import os from "os"
-import { replaceNulls } from "../../../src/util/type";
 
 describe("yaml serializer tests", () => {
   describe("base serializer", () => {
@@ -13,6 +11,9 @@ describe("yaml serializer tests", () => {
 
       const result = serializer.deserialize(text, "fake/relative");
       expect(result).toBeDefined()
+      expect(result.type).toBe("List")
+      expect(result.items.map(i => i.type)).toEqual(["Item", "Item"])
+      expect(result.items.map(i => i.name)).toEqual(["weird", "idk idk"])
     })
   })
 })
