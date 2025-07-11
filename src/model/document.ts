@@ -1,5 +1,5 @@
 import { isArr, isDef, isStr, replaceNulls, SimpleType } from "../util/type";
-import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemWrongTypeError } from "./error";
+import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemMissingTypeError, ItemWrongTypeError, TypeWithExtraWhitespaceError, TypeWithInvalidWhitespaceError } from "./error";
 
 /**
  * Represents a list of items. A single document, both from an abstract sense, and maybe
@@ -9,10 +9,20 @@ export interface Document<T extends string, I extends string> extends DocumentIt
   relativePath: string
   items: DocumentItem<I>[]
 }
-export function validateDocument<T extends string, I extends string>(type: T, itemTypes:I[], document:any): document is DocumentItem<T> {
+
+/**
+ * 
+ * @param type 
+ * @param itemTypes 
+ * @param document 
+ * @throws {DocumentMissingRelativePathError}
+ * @throws {DocumentMissingItemsError}
+ * @returns 
+ */
+export function validateDocument<T extends string, I extends string>(type: T, itemTypes:I[], document:any): document is Document<T,I> {
   document = replaceNulls(document)
   validateDocumentItem(type, document)
-  if (!isStr(document.relativePath)) {
+  if (!isStr(document.relativePath) || document.relativePath === "") {
     throw new DocumentMissingRelativePathError()
   }
   if (!isArr(document.items)) {
@@ -33,7 +43,19 @@ export interface DocumentItem<T extends string> extends Typed<T> {
 
   properties: Record<string,SimpleType>
 }
+/**
+ * 
+ * @param type 
+ * @param item 
+ * @throws {ItemWrongTypeError}
+ * @throws {ItemMissingNameError}
+ * @returns 
+ */
 export function validateDocumentItem<T extends string>(type: T|T[], item:any): item is DocumentItem<T> {
+  if (!isTyped(item)) {
+    throw new ItemMissingTypeError()
+  }
+
   const possibleTypes = isArr(type)? type : [type]
   let foundType = false
   for (let possibleType of possibleTypes) {
@@ -59,9 +81,23 @@ export interface Typed<T extends string> {
   type: T
 }
 export function isTyped(typed:any): typed is Typed<string> {
-  return isStr(typed?.type)
+  const _isTyped = isDef(typed) && isStr(typed.type) && typed.type !== ""
+  if (_isTyped) {
+    AssertCorrectWhitespace(typed.type)
+  }
+  return _isTyped
 }
 export function isOfType<T extends string>(type:T, typed:any): typed is Typed<T> {
-  return isDef(typed) && isStr(typed.type) && typed.type === type
+  return isTyped(typed) && typed.type === type
 }
 
+const onlySpaces = /^[ \S]*$/
+
+function AssertCorrectWhitespace(type:string):void {
+  if (type.trim() !== type) {
+    throw new TypeWithExtraWhitespaceError()
+  }
+  if (!onlySpaces.test(type)) {
+    throw new TypeWithInvalidWhitespaceError()
+  }
+}

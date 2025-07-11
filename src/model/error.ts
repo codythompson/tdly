@@ -15,7 +15,7 @@ export class DocumentFormatError extends Error {
   }
 
   static toMessage(params:DocumentFormatErrorParams = {}):string {
-    const {errorName=this.name,serializerName,documentType,relativePath,message} = params
+    const {errorName,serializerName,documentType,relativePath,message} = params
     const msgar = [errorName,serializerName,documentType,relativePath,message]
       .filter(m => isDef(m))
     return "["+msgar.join("]")
@@ -29,6 +29,9 @@ export class DocumentFormatError extends Error {
   }
 }
 
+export class TypeWithExtraWhitespaceError extends DocumentFormatError { }
+export class TypeWithInvalidWhitespaceError extends DocumentFormatError { }
+export class ItemMissingTypeError extends DocumentFormatError { }
 export class ItemWrongTypeError extends DocumentFormatError { }
 export class ItemMissingNameError extends DocumentFormatError { }
 export class DocumentMissingRelativePathError extends DocumentFormatError { }
