@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DocumentSerializer } from "../../src/model/storage";
+import { DocumentSerializer } from "../../src/model/serializer";
 import { Document, DocumentItem } from "../../src/model/document";
 
 class TestSerializer extends DocumentSerializer<"List","Item"> {

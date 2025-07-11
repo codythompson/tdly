@@ -1,6 +1,8 @@
 import { isDef } from "../util/type"
 import { Document, DocumentItem } from "./document"
-import { DocumentSerializer, DocumentStorage, DocumentStorageParams, DocumentItemInflater } from "./storage"
+import { DocumentItemInflater } from "./inflater"
+import { DocumentSerializer } from "./serializer"
+import { DocumentStorage, DocumentStorageParams } from "./storage"
 
 /**
  * An abstract representation of the todo list app's data model.

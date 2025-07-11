@@ -1,42 +1,6 @@
-import { isDef, isStr } from "../util/type";
 import { Document, DocumentItem, Typed } from "./document"
 import { Model } from "./model";
-
-/**
- * interface for converting a document and it's contents to and from a string.
- * Used for checking if the cached version of a document has changed.
- * Used by models using text files for permanent storage.
- */
-export abstract class DocumentSerializer<T extends string, I extends string> implements Typed<T> {
-  abstract type: T
-  abstract itemTypes: I[]
-  abstract serialize(document: Document<T, I>): string
-  abstract deserialize(content: string, relativePath:string): Document<T, I>
-
-  async computeHash(documentOrContent: Document<T, I> | string): Promise<string> {
-    const contentStr = isStr(documentOrContent) ? documentOrContent : this.serialize(documentOrContent);
-    return await DocumentSerializer.computeHash(contentStr);
-  }
-
-  async hasChanged(newDocument: Document<T, I> | string, previousHash?: string): Promise<boolean> {
-    if (!isDef(previousHash)) {
-      return false
-    }
-    const newHash = await this.computeHash(newDocument)
-    return newHash !== previousHash
-  }
-
-  // from claude.ai
-  // Using Web Crypto API (modern browsers/Node.js)
-  static async computeHash(serialized: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(serialized);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-}
-
+import { DocumentSerializer } from "./serializer";
 /**
  * interface for reading and writing documents to and from permanent storage
  */
@@ -65,11 +29,4 @@ export interface DocumentStorageParams<A extends string, T extends A, I extends 
   basePath: string
   relativePath: string
   serializer: DocumentSerializer<T, I>
-}
-
-/**
- * Converts a generic document item into a custom typed item
- */
-export interface DocumentItemInflater<T extends string, D extends DocumentItem<T>> extends Typed<T> {
-  inflate<A extends T|string>(model: Model<A>, document:DocumentItem<T>):D
 }
