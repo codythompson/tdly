@@ -8,6 +8,7 @@ export class YamlGenericSerializer<T extends string, I extends string> extends D
   }
 
   serialize(document: Document<T, I>): string {
+    delete (document as any).relativePath
     return yaml.stringify(document)
   }
 
