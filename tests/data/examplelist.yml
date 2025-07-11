@@ -1,0 +1,10 @@
+type: "List"
+name: "Example List"
+items:
+
+  - type: "Item"
+    name: "weird"
+
+  - type: "Item"
+    name: "idk idk"
+    tags: ["idk"]
