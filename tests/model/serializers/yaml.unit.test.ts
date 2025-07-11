@@ -1,6 +1,6 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { YamlGenericSerializer } from "../../../src/model/serializers/yaml/yaml";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync } from "fs";
 import path from "path";
 
 const exampleDataBase = path.resolve(__dirname, "../../data")
@@ -29,7 +29,6 @@ describe("yaml serializer tests", () => {
 
       // ACT
       const newText = serializer.serialize(result)
-      writeFileSync(exampleDataBase+"/mmk.yml", newText)
 
       // ASSERT
       expect(newText).toEqual(exampleList)

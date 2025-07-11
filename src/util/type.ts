@@ -8,6 +8,15 @@ export type PrimitiveType = string|number|boolean
 export type JsonType = null|PrimitiveType|JsonType[]|{[key: string]: JsonType}
 export type SimpleType = undefined|PrimitiveType|SimpleType[]|{[key: string]: SimpleType}
 
+/**
+ * throw an error if the value is null
+ * 
+ * the philosophy here is having two kinds of nullish types causes a lot of headaches
+ * the project intends to only use undefined as valid "nullish" values,
+ * and treat the existence of nulls as a bug
+ * @param value 
+ * @returns 
+ */
 export function AssertNotNull<T>(value:T|null|undefined): value is T|undefined {
     if (value === null)
     {
