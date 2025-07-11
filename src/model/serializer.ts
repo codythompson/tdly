@@ -6,18 +6,16 @@ import { Document, Typed } from "./document"
  * Used for checking if the cached version of a document has changed.
  * Used by models using text files for permanent storage.
  */
-export abstract class DocumentSerializer<T extends string, I extends string> implements Typed<T> {
-  abstract type: T
-  abstract itemTypes: I[]
-  abstract serialize(document: Document<T, I>): string
-  abstract deserialize(content: string, relativePath:string): Document<T, I>
+export abstract class DocumentSerializer<A extends string> {
+  abstract serialize(document: Document<A,A>): string
+  abstract deserialize<T extends A, I extends A>(type:T, itemTypes:I[], content: string, relativePath:string): Document<T, I>
 
-  async computeHash(documentOrContent: Document<T, I> | string): Promise<string> {
+  async computeHash(documentOrContent: Document<A,A> | string): Promise<string> {
     const contentStr = isStr(documentOrContent) ? documentOrContent : this.serialize(documentOrContent);
     return await DocumentSerializer.computeHash(contentStr);
   }
 
-  async hasChanged(newDocument: Document<T, I> | string, previousHash?: string): Promise<boolean> {
+  async hasChanged(newDocument: Document<A,A> | string, previousHash?: string): Promise<boolean> {
     if (!isDef(previousHash)) {
       return false
     }

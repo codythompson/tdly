@@ -15,7 +15,7 @@ import { DocumentStorage, DocumentStorageParams } from "./storage"
 export abstract class Model<A extends string> {
   readonly documentCache = new DocumentCache<A>()
   readonly storage: DocumentStorage<A>
-  readonly serializers: Record<A, DocumentSerializer<A, A>>
+  readonly serializer: DocumentSerializer<A>
   readonly inflaters: Record<A, DocumentItemInflater<A, DocumentItem<A>>>
 
   /**
@@ -23,12 +23,9 @@ export abstract class Model<A extends string> {
    * @param serializers serializers for every model/document - required even if the strings are not being stored directly
    *    (i.e. non file based storage)
    */
-  constructor(readonly basePath: string, storage: DocumentStorage<A>, serializers: DocumentSerializer<A, A>[], inflaters: DocumentItemInflater<A, DocumentItem<A>>[]) {
+  constructor(readonly basePath: string, storage: DocumentStorage<A>, serializer: DocumentSerializer<A>, inflaters: DocumentItemInflater<A, DocumentItem<A>>[]) {
     this.storage = storage;
-    this.serializers = Object.fromEntries(
-      serializers
-        .map(s => [s.type, s])
-    ) as Record<A, DocumentSerializer<A, A>>;
+    this.serializer = serializer
     this.inflaters = Object.fromEntries(
       inflaters
         .map(s => [s.type, s])
@@ -90,12 +87,12 @@ export abstract class Model<A extends string> {
    * @param type 
    * @returns 
    */
-  getSerializer<T extends A, I extends A>(type: T): DocumentSerializer<T, I> {
-    if (!(type in this.serializers)) {
-      throw new Error("no serializer found for type: "+type)
-    }
-    return this.serializers[type] as DocumentSerializer<T, I>
-  }
+  // getSerializer<T extends A, I extends A>(type: T): DocumentSerializer<T, I> {
+  //   if (!(type in this.serializers)) {
+  //     throw new Error("no serializer found for type: "+type)
+  //   }
+  //   return this.serializers[type] as DocumentSerializer<T, I>
+  // }
 
   /**
    * get the inflater associated with the given item type
@@ -116,9 +113,8 @@ export abstract class Model<A extends string> {
     if (!isDef(cachedHash)) {
       return undefined
     }
-    const serializer = this.getSerializer(document.type)
-    const newContent = serializer.serialize(document)
-    const newHash = await serializer.computeHash(newContent)
+    const newContent = this.serializer.serialize(document)
+    const newHash = await this.serializer.computeHash(newContent)
     return newHash !== cachedHash ? newHash : undefined
   }
 
@@ -131,7 +127,7 @@ export abstract class Model<A extends string> {
       model: this,
       basePath: this.basePath,
       relativePath,
-      serializer: this.getSerializer(type)
+      serializer: this.serializer
     }
   }
 }

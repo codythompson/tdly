@@ -10,10 +10,10 @@ describe("yaml serializer tests", () => {
   describe("base serializer", () => {
     it("should desrialzie basic todo yaml files to generic documents", () => {
       // ARRANGE
-      const serializer = new YamlGenericSerializer("List", ["Item"])
+      const serializer = new YamlGenericSerializer()
 
       // ACT
-      const result = serializer.deserialize(exampleList, "fake/relative");
+      const result = serializer.deserialize("List", ["Item"], exampleList, "fake/relative");
 
       // ASSERT
       expect(result).toBeDefined()
@@ -24,8 +24,8 @@ describe("yaml serializer tests", () => {
 
     it("should serialize back to its original contents if unedited", () => {
       // ARRANGE
-      const serializer = new YamlGenericSerializer("List", ["Item"])
-      const result = serializer.deserialize(exampleList, "fake/relative");
+      const serializer = new YamlGenericSerializer()
+      const result = serializer.deserialize("List", ["Item"], exampleList, "fake/relative");
 
       // ACT
       const newText = serializer.serialize(result)

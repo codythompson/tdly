@@ -1,4 +1,4 @@
-import { Document, DocumentItem, Typed } from "./document"
+import { Document } from "./document"
 import { Model } from "./model";
 import { DocumentSerializer } from "./serializer";
 /**
@@ -12,7 +12,7 @@ export interface DocumentStorage<A extends string> {
    * @param type the model type of the document
    * @param relativePath the relative path to file (or maybe schema) containing the models to read/load
   */
-  read<T extends A, I extends A>(params: DocumentStorageParams<A, T, I>): Promise<Document<T, I>>
+  read<T extends A, I extends A>(params: DocumentStorageParams<A>): Promise<Document<T, I>>
 
   /**
    * Write a document of models to file (or db, rest API, etc.).
@@ -21,12 +21,12 @@ export interface DocumentStorage<A extends string> {
    * @param type the model type of the document
    * @param relativePath the relative path to file (or maybe schema) containing the models to read/load
   */
-  write<T extends A, I extends A>(params: DocumentStorageParams<A, T, I>, document: Document<T, I>): Promise<void>
+  write<T extends A, I extends A>(params: DocumentStorageParams<A>, document: Document<T, I>): Promise<void>
 }
 
-export interface DocumentStorageParams<A extends string, T extends A, I extends A> {
+export interface DocumentStorageParams<A extends string> {
   model: Model<A>
   basePath: string
   relativePath: string
-  serializer: DocumentSerializer<T, I>
+  serializer: DocumentSerializer<A>
 }
