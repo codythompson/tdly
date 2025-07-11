@@ -15,14 +15,15 @@ export abstract class DocumentSerializer<T extends string, I extends string> imp
 
   async computeHash(documentOrContent: Document<T, I> | string): Promise<string> {
     const contentStr = isStr(documentOrContent) ? documentOrContent : this.serialize(documentOrContent);
-    return DocumentSerializer.computeHash(contentStr);
+    return await DocumentSerializer.computeHash(contentStr);
   }
 
   async hasChanged(newDocument: Document<T, I> | string, previousHash?: string): Promise<boolean> {
     if (!isDef(previousHash)) {
       return false
     }
-    return await this.computeHash(newDocument) === previousHash
+    const newHash = await this.computeHash(newDocument)
+    return newHash !== previousHash
   }
 
   // from claude.ai

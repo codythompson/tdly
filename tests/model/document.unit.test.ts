@@ -1,7 +1,7 @@
 import { describe, expect, it, test } from "vitest";
-import { Document, DocumentItem, isOfType, isTyped, validateDocument, validateDocumentItem } from "../../../src/model/document"
-import { UnexpectedNullError } from "../../../src/util/type";
-import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemMissingTypeError, ItemWrongTypeError, TypeWithExtraWhitespaceError, TypeWithInvalidWhitespaceError } from "../../../src/model/error";
+import { Document, DocumentItem, isOfType, isTyped, validateDocument, validateDocumentItem } from "../../src/model/document"
+import { UnexpectedNullError } from "../../src/util/type";
+import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemMissingTypeError, ItemWrongTypeError, TypeWithExtraWhitespaceError, TypeWithInvalidWhitespaceError } from "../../src/model/error";
 
 const extraWhitespaceTestStrings = [ " sometype", "sometype ", " sometype ", " some type ", "\tsome type", "\nsome type ", "\nsome type\n", "\f\nsome type\n\f", ];
 const invalidWhitespaceTestStrings = [ "some\ntype", "some \ntype", "some\rtype", "some\r type", "some\ftype", "some\ttype", "some\n\ftype", "some\f\ntype", "some\n \ftype", "some\f \ntype", ];
