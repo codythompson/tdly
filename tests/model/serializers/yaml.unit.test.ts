@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { YamlGenericSerializer } from "../../../src/model/serializers/yaml/yaml";
+import { YamlGenericSerializer } from "../../../src/model/serializers/yaml";
 import { readFileSync } from "fs";
 import path from "path";
 

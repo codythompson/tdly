@@ -1,6 +1,6 @@
 import yaml from "yaml"
-import { Document, validateDocument } from "../../document";
-import { DocumentSerializer } from "../../serializer";
+import { Document, validateDocument } from "../document";
+import { DocumentSerializer } from "../serializer";
 
 export class YamlGenericSerializer<T extends string, I extends string> extends DocumentSerializer<T,I> {
   constructor(readonly type:T, readonly itemTypes:I[]) {
