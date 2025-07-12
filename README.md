@@ -1,4 +1,4 @@
-# (t)o(d) (l)ist for (y)aml
+# (t)o(d)o (l)ist for (y)aml
 _and maybe other file formats too_
 
 ## The aim of this project is to provide a todo list model/interface that is editor and storage agnostic.
