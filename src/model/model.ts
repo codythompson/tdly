@@ -1,6 +1,6 @@
-import { isDef } from "../util/type"
-import { Document, DocumentItem } from "./document"
-import { DocumentItemInflater } from "./inflater"
+import { isDef } from "@typed/guards"
+import { Document, DocumentItemType, DocumentType } from "./document"
+import { DocumentInflater } from "./inflater"
 import { DocumentSerializer } from "./serializer"
 import { DocumentStorage, DocumentStorageParams } from "./storage"
 
@@ -16,20 +16,20 @@ export abstract class Model<A extends string> {
   readonly documentCache = new DocumentCache<A>()
   readonly storage: DocumentStorage<A>
   readonly serializer: DocumentSerializer<A>
-  readonly inflaters: Record<A, DocumentItemInflater<A, DocumentItem<A>>>
+  readonly inflaters: Record<A, DocumentInflater<Document<A,A>>>
 
   /**
    * @param {string} basePath the root directory (or maybe db host in the future) of the data files/base
    * @param serializers serializers for every model/document - required even if the strings are not being stored directly
    *    (i.e. non file based storage)
    */
-  constructor(readonly basePath: string, storage: DocumentStorage<A>, serializer: DocumentSerializer<A>, inflaters: DocumentItemInflater<A, DocumentItem<A>>[]) {
+  constructor(readonly basePath: string, storage: DocumentStorage<A>, serializer: DocumentSerializer<A>, inflaters: DocumentInflater<Document<A,A>>[]) {
     this.storage = storage;
     this.serializer = serializer
     this.inflaters = Object.fromEntries(
       inflaters
         .map(s => [s.type, s])
-    ) as Record<A, DocumentItemInflater<A, DocumentItem<A>>>;
+    ) as Record<A, DocumentInflater<Document<A,A>>>;
   }
 
   /**
@@ -46,8 +46,8 @@ export abstract class Model<A extends string> {
     }
 
     // if here, no cached version
-    const storageParams = this.getStorageParams<T, I>(type, relativePath);
-    const document = await this.storage.read<T, I>(storageParams);
+    const storageParams = this.getStorageParams(type, this.getItemTypes<T,I>(type), relativePath);
+    const document = await this.storage.read<T,I>(storageParams);
     const hash = await storageParams.serializer.computeHash(document)
     this.documentCache.setEntry(hash, document)
 
@@ -62,9 +62,9 @@ export abstract class Model<A extends string> {
    * @param relativePath 
    * @returns 
    */
-  async read<T extends A, D extends Document<T,A>>(type:T, relativePath:string):Promise<D> {
-    const generic = await this.readGeneric(type, relativePath)
-    return this.getInflater<T, D>(type).inflate<A>(this, generic)
+  async read<D extends Document<A,A>>(type:DocumentType<D>, relativePath:string):Promise<D> {
+    const generic = await this.readGeneric<DocumentType<D>,DocumentItemType<D>>(type, relativePath)
+    return this.getInflater<D>(type).inflate(this, generic)
   }
 
   /**
@@ -75,24 +75,12 @@ export abstract class Model<A extends string> {
   async write(document: Document<A, A>): Promise<void> {
     const newHash = await this.computeNewHashIfNecessary(document);
     if (isDef(newHash)) {
-      const storageParams = this.getStorageParams(document.type, document.relativePath);
+      const storageParams = this.getStorageParams(document.type, document.itemTypes, document.relativePath);
       this.storage.write(storageParams, document)
       const newDocument = await this.storage.read(storageParams)
       this.documentCache.setEntry(newHash, newDocument)
     }
   }
-
-  /**
-   * get the serializer associated with the given document type
-   * @param type 
-   * @returns 
-   */
-  // getSerializer<T extends A, I extends A>(type: T): DocumentSerializer<T, I> {
-  //   if (!(type in this.serializers)) {
-  //     throw new Error("no serializer found for type: "+type)
-  //   }
-  //   return this.serializers[type] as DocumentSerializer<T, I>
-  // }
 
   /**
    * get the inflater associated with the given item type
@@ -101,11 +89,11 @@ export abstract class Model<A extends string> {
    * @param type 
    * @returns 
    */
-  getInflater<T extends A, D extends DocumentItem<T>>(type: T): DocumentItemInflater<T, D> {
+  getInflater<D extends Document<A,A>, T extends DocumentType<D> = DocumentType<D>>(type: T): DocumentInflater<D> {
     if (!(type in this.inflaters)) {
       throw new Error("no inflater found for type: "+type)
     }
-    return this.inflaters[type] as DocumentItemInflater<T, D>
+    return this.inflaters[type] as any // this as-any hurts, but faith in the implementers needs to happen somewhere
   }
 
   private async computeNewHashIfNecessary(document: Document<A, A>): Promise<string | undefined> {
@@ -122,8 +110,14 @@ export abstract class Model<A extends string> {
     return this.documentCache.getEntry(type, relativePath)
   }
 
-  private getStorageParams<T extends A, I extends A>(type: T, relativePath: string): DocumentStorageParams<A, T, I> {
+  private getItemTypes<T extends A, I extends A>(type:T):I[] {
+    return this.getInflater<Document<T,I>>(type).itemTypes
+  }
+
+  private getStorageParams<T extends A, I extends A>(type:T, itemTypes:I[], relativePath: string): DocumentStorageParams<A,T,I> {
     return {
+      type,
+      itemTypes,
       model: this,
       basePath: this.basePath,
       relativePath,
@@ -131,6 +125,11 @@ export abstract class Model<A extends string> {
     }
   }
 }
+
+/**
+ * A function that returns an appropriate model class when the basePath changes
+ */
+export type ModelFactory<A extends string> = (basePath:string) => Model<A>
 
 /* *********************************************************************************************************************
  * Internal utility classes

@@ -1,12 +1,4 @@
-export class UnexpectedNullError extends Error {}
-export class UnexpectedTypeError extends Error {}
-
-export const PrimitiveTypes = ["string","number","boolean"] as PrimitiveTypeString[];
-export type PrimitiveTypeString = "string"|"number"|"boolean";
-export type PrimitiveType = string|number|boolean
-
-export type JsonType = null|PrimitiveType|JsonType[]|{[key: string]: JsonType}
-export type SimpleType = undefined|PrimitiveType|SimpleType[]|{[key: string]: SimpleType}
+import { UnexpectedNullError, UnexpectedTypeError } from "./error";
 
 /**
  * throw an error if the value is null
@@ -96,28 +88,4 @@ isStrArr.Nullable = function(value:any): value is string[] {
         }
     }
     return true;
-}
-
-export function isPrim(value:any): value is PrimitiveType {
-    const type = typeof value
-    return (PrimitiveTypes as string[]).indexOf(type) >= 0;
-}
-
-export function replaceNulls(value:any): SimpleType {
-    if (!isDef.Nullable(value)) {
-        return undefined
-    }
-    if (isPrim(value)) {
-        return value;
-    }
-    if (isArr(value)) {
-        return value.map(v => replaceNulls(v))
-    }
-    if (isObj(value)) {
-        return Object.fromEntries(
-            Object.entries(value)
-                .map(([k, v]) => [k, replaceNulls(v)])
-        );
-    }
-    throw new UnexpectedTypeError();
 }

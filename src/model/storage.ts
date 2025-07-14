@@ -12,7 +12,7 @@ export interface DocumentStorage<A extends string> {
    * @param type the model type of the document
    * @param relativePath the relative path to file (or maybe schema) containing the models to read/load
   */
-  read<T extends A, I extends A>(params: DocumentStorageParams<A>): Promise<Document<T, I>>
+  read<T extends A, I extends A>(params: DocumentStorageParams<A,T,I>): Promise<Document<T,I>>
 
   /**
    * Write a document of models to file (or db, rest API, etc.).
@@ -21,12 +21,31 @@ export interface DocumentStorage<A extends string> {
    * @param type the model type of the document
    * @param relativePath the relative path to file (or maybe schema) containing the models to read/load
   */
-  write<T extends A, I extends A>(params: DocumentStorageParams<A>, document: Document<T, I>): Promise<void>
+  write<T extends A, I extends A>(params: DocumentStorageParams<A,T,I>, document: Document<T, I>): Promise<void>
+
+  /**
+   * Get a representation of the contents of the folder at the given basePath
+   * @param params 
+   */
+  list(params: DocumentStorageListParams<A>): Promise<Folder>
 }
 
-export interface DocumentStorageParams<A extends string> {
+export interface DocumentStorageParams<A extends string, T extends A, I extends A> {
+  type: T,
+  itemTypes: I[],
   model: Model<A>
   basePath: string
   relativePath: string
   serializer: DocumentSerializer<A>
+}
+
+export interface DocumentStorageListParams<A extends string> {
+  basePath: string
+  serializer: DocumentSerializer<A>
+  recursive?: number|boolean
+}
+
+export interface Folder {
+  folders: Set<string>
+  documents: Set<string>
 }

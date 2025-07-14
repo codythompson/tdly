@@ -1,5 +1,9 @@
-import { TextGroup } from "./text";
+import { EventManager } from "./event";
+import { UIDocument } from "./text";
 
-export interface Display {
-    display(textGroup: TextGroup | TextGroup[]): Promise<void>
+export abstract class Display {
+  readonly events:EventManager = new EventManager()
+
+  abstract displayMessge(message: UIDocument): Promise<void>
+  abstract display(document: UIDocument): Promise<void>
 }

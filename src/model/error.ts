@@ -1,38 +1,64 @@
-import { isDef } from "../util/type"
+import { isDef, isStr } from "../typed/guards"
 
-export interface DocumentFormatErrorParams {
-  errorName?:string
-  serializerName?:string
-  documentType?:string
-  relativePath?:string
-  message?:string
-  originalError?:Error
+const paramNames = [
+  "errorName",
+  "serializerName",
+  "relativePath",
+  "documentType",
+  "itemType",
+  "propertyName",
+  "message",
+] as const
+type ParamKeys = typeof paramNames[number]
+export type DocumentFormatErrorParams = {
+  [K in ParamKeys]?: string
 }
+export type DocumentFormatErrorInfo = Map<ParamKeys, string>
 
 export class DocumentFormatError extends Error {
-  constructor(readonly params:DocumentFormatErrorParams = {}) {
-    super(DocumentFormatError.toMessage(params))
+  readonly info:DocumentFormatErrorInfo
+  readonly defaults?:DocumentFormatErrorParams
+
+  constructor(paramsOrMessage:DocumentFormatErrorParams|string = {}, message?:string) {
+    super()
+    this.info = this.toParamMap(paramsOrMessage, message)
+    this.message = this.toMessage()
   }
 
-  static toMessage(params:DocumentFormatErrorParams = {}):string {
-    const {errorName,serializerName,documentType,relativePath,message} = params
-    const msgar = [errorName,serializerName,documentType,relativePath,message]
-      .filter(m => isDef(m))
-    return "["+msgar.join("]")
+  toMessage():string {
+    return `[${[...this.info.values()].join("]")}`
   }
 
-  static paramDefaults(defaults:DocumentFormatErrorParams, given:DocumentFormatErrorParams):DocumentFormatErrorParams {
+  toParamMap(paramsOrMessage:DocumentFormatErrorParams|string, message?:string):DocumentFormatErrorInfo {
+    const params = DocumentFormatError.paramDefaults(paramsOrMessage, this.defaults, message)
+    return new Map(paramNames.map(k => [k, params[k]])) as DocumentFormatErrorInfo
+  }
+
+  prepend(infoKey:ParamKeys, value:string, separator=".") {
+    const existing = this.info.has(infoKey)? separator+this.info.get(infoKey) : ""
+    this.info.set(infoKey, value+existing)
+  }
+
+  static paramDefaults(given:DocumentFormatErrorParams|string, defaults:DocumentFormatErrorParams={}, message?:string):DocumentFormatErrorParams {
+    if (isStr(given) && isStr(message)) {
+      throw new Error("Invalid args to paramDefaults, both cant be strings")
+    }
+    given = isStr(given)? {message:given} : {message:message}
+    const errorName=this.name
     return {
+      errorName,
       ...defaults,
       ...given
     }
   }
 }
 
-export class TypeWithExtraWhitespaceError extends DocumentFormatError { }
-export class TypeWithInvalidWhitespaceError extends DocumentFormatError { }
+export class DocumentMissingRelativePathError extends DocumentFormatError { }
+export class DocumentMissingItemsError extends DocumentFormatError { }
 export class ItemMissingTypeError extends DocumentFormatError { }
 export class ItemWrongTypeError extends DocumentFormatError { }
 export class ItemMissingNameError extends DocumentFormatError { }
-export class DocumentMissingRelativePathError extends DocumentFormatError { }
-export class DocumentMissingItemsError extends DocumentFormatError { }
+
+export class DocumentPropertyError extends DocumentFormatError {}
+export class PropertyMissingError extends DocumentPropertyError { }
+export class PropertyUnexpectedTypeError extends DocumentPropertyError { }

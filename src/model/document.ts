@@ -1,14 +1,22 @@
-import { isArr, isDef, isStr, replaceNulls, SimpleType } from "../util/type";
-import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemMissingTypeError, ItemWrongTypeError, TypeWithExtraWhitespaceError, TypeWithInvalidWhitespaceError } from "./error";
+import { isOfType, isTyped, Typed } from "@typed/typed";
+import { isArr, isStr } from "@typed/guards";
+import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemMissingTypeError, ItemWrongTypeError } from "./error";
+import { ItemProperties } from "./properties";
+import { replaceNulls } from "@typed/simple";
 
 /**
  * Represents a list of items. A single document, both from an abstract sense, and maybe
  * from a technical sense (i.e. a file, set, and sort-of like two tables in a 1-* relationship)
  */
 export interface Document<T extends string, I extends string> extends DocumentItem<T>, Typed<T> {
+  itemTypes: I[]
   relativePath: string
   items: DocumentItem<I>[]
 }
+
+export type AllDocumentTypes<D> = D extends Document<infer T, infer I> ? T|I : string
+export type DocumentType<D> = D extends Document<infer T, any> ? T : string
+export type DocumentItemType<D> = D extends Document<any, infer I> ? I : string | D extends DocumentItem<infer T> ? T : string
 
 /**
  * 
@@ -41,7 +49,7 @@ export function validateDocument<T extends string, I extends string>(type: T, it
 export interface DocumentItem<T extends string> extends Typed<T> {
   name: string
 
-  properties: Record<string,SimpleType>
+  properties: ItemProperties
 }
 /**
  * 
@@ -75,29 +83,4 @@ export function validateDocumentItem<T extends string>(type: T|T[], item:any): i
     })
   }
   return true;
-}
-
-export interface Typed<T extends string> {
-  type: T
-}
-export function isTyped(typed:any): typed is Typed<string> {
-  const _isTyped = isDef(typed) && isStr(typed.type) && typed.type !== ""
-  if (_isTyped) {
-    AssertCorrectWhitespace(typed.type)
-  }
-  return _isTyped
-}
-export function isOfType<T extends string>(type:T, typed:any): typed is Typed<T> {
-  return isTyped(typed) && typed.type === type
-}
-
-const onlySpaces = /^[ \S]*$/
-
-function AssertCorrectWhitespace(type:string):void {
-  if (type.trim() !== type) {
-    throw new TypeWithExtraWhitespaceError()
-  }
-  if (!onlySpaces.test(type)) {
-    throw new TypeWithInvalidWhitespaceError()
-  }
 }

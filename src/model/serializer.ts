@@ -1,5 +1,6 @@
-import { isStr, isDef } from "../util/type";
-import { Document, Typed } from "./document"
+import { SimpleType } from "@typed/simple";
+import { isStr, isDef } from "@typed/guards";
+import { Document, validateDocument } from "./document"
 
 /**
  * interface for converting a document and it's contents to and from a string.
@@ -8,7 +9,20 @@ import { Document, Typed } from "./document"
  */
 export abstract class DocumentSerializer<A extends string> {
   abstract serialize(document: Document<A,A>): string
-  abstract deserialize<T extends A, I extends A>(type:T, itemTypes:I[], content: string, relativePath:string): Document<T, I>
+  abstract deserializeToObject(content: string, relativePath:string): SimpleType
+
+  deserialize<T extends A, I extends A>(type:T, itemTypes:I[], content: string, relativePath:string): Document<T,I> {
+    const obj = this.deserializeToObject(content, relativePath)
+    return this.validateDocument(type, itemTypes, obj)
+  }
+
+  validateDocument<T extends A, I extends A>(type:T, itemTypes:I[], obj:SimpleType): Document<T,I> {
+    if (!validateDocument(type, itemTypes, obj)) {
+      // this isn't possible, in theory, because validateDocument should always throw when obj is not valid
+      throw new Error("bug in validateDocument function")
+    }
+    return obj
+  }
 
   async computeHash(documentOrContent: Document<A,A> | string): Promise<string> {
     const contentStr = isStr(documentOrContent) ? documentOrContent : this.serialize(documentOrContent);

@@ -1,7 +1,8 @@
 import { describe, expect, it, test } from "vitest";
-import { Document, DocumentItem, isOfType, isTyped, validateDocument, validateDocumentItem } from "../../src/model/document"
-import { UnexpectedNullError } from "../../src/util/type";
-import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemMissingTypeError, ItemWrongTypeError, TypeWithExtraWhitespaceError, TypeWithInvalidWhitespaceError } from "../../src/model/error";
+import { Document, DocumentItem, validateDocument, validateDocumentItem } from "../../src/model/document"
+import { DocumentMissingItemsError, DocumentMissingRelativePathError, ItemMissingNameError, ItemMissingTypeError, ItemWrongTypeError } from "../../src/model/error";
+import { isOfType, isTyped } from "../../src/typed/typed"
+import { TypeWithExtraWhitespaceError, TypeWithInvalidWhitespaceError, UnexpectedNullError } from "../../src/typed/error";
 
 const extraWhitespaceTestStrings = [ " sometype", "sometype ", " sometype ", " some type ", "\tsome type", "\nsome type ", "\nsome type\n", "\f\nsome type\n\f", ];
 const invalidWhitespaceTestStrings = [ "some\ntype", "some \ntype", "some\rtype", "some\r type", "some\ftype", "some\ttype", "some\n\ftype", "some\f\ntype", "some\n \ftype", "some\f \ntype", ];
@@ -93,9 +94,11 @@ describe("document tests", () => {
       // ARRANGE
       const validEmptyDoc = {
         type: "docfake",
+        itemTypes: ["fakefake"],
         name: "doc",
         relativePath: "ok",
-        items: [] as DocumentItem<"fakefake">[]
+        properties: [],
+        items: [] as DocumentItem<"fakefake">[],
       } as Document<"docfake","fakefake">
       const items = {
         valid: { type: "fitem", name: "some item" },
