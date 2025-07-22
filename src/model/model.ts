@@ -12,24 +12,24 @@ import { DocumentStorage, DocumentStorageParams } from "./storage"
  * The documents are defined by the serializers given to the constructor.
  * The storage "engine" is defined by the documentStorage instance given to the constructor.
  */
-export abstract class Model<A extends string> {
-  readonly documentCache = new DocumentCache<A>()
-  readonly storage: DocumentStorage<A>
-  readonly serializer: DocumentSerializer<A>
-  readonly inflaters: Record<A, DocumentInflater<Document<A,A>>>
+export class Model<DT extends string = string, DI extends string = string> {
+  readonly documentCache = new DocumentCache<DT,DI>()
+  readonly storage: DocumentStorage<DT,DI>
+  readonly serializer: DocumentSerializer<DT,DI>
+  readonly inflaters: Record<DT, DocumentInflater<Document<DT,DI>,DT,DI>>
 
   /**
    * @param {string} basePath the root directory (or maybe db host in the future) of the data files/base
    * @param serializers serializers for every model/document - required even if the strings are not being stored directly
    *    (i.e. non file based storage)
    */
-  constructor(readonly basePath: string, storage: DocumentStorage<A>, serializer: DocumentSerializer<A>, inflaters: DocumentInflater<Document<A,A>>[]) {
+  constructor(readonly basePath: string, storage: DocumentStorage<DT,DI>, serializer: DocumentSerializer<DT,DI>, inflaters: DocumentInflater<Document<DT,DI>,DT,DI>[]) {
     this.storage = storage;
     this.serializer = serializer
     this.inflaters = Object.fromEntries(
       inflaters
         .map(s => [s.type, s])
-    ) as Record<A, DocumentInflater<Document<A,A>>>;
+    ) as Record<DT, DocumentInflater<Document<DT,DI>,DT,DI>>;
   }
 
   /**
@@ -39,14 +39,14 @@ export abstract class Model<A extends string> {
    * @param relativePath 
    * @returns 
    */
-  async readGeneric<T extends A, I extends A>(type: T, relativePath: string): Promise<Document<T,I>> {
+  async readGeneric<T extends DT, I extends DI>(type: T, relativePath: string): Promise<Document<T,I>> {
     const cacheEntry = this.getCached<T, I>(type, relativePath)
     if (isDef(cacheEntry)) {
       return cacheEntry.document
     }
 
     // if here, no cached version
-    const storageParams = this.getStorageParams(type, this.getItemTypes<T,I>(type), relativePath);
+    const storageParams = this.getStorageParams<T,I>(type, this.getItemTypes<T,I>(type), relativePath);
     const document = await this.storage.read<T,I>(storageParams);
     const hash = await storageParams.serializer.computeHash(document)
     this.documentCache.setEntry(hash, document)
@@ -62,7 +62,7 @@ export abstract class Model<A extends string> {
    * @param relativePath 
    * @returns 
    */
-  async read<D extends Document<A,A>>(type:DocumentType<D>, relativePath:string):Promise<D> {
+  async read<D extends Document<DT,DI>>(type:DocumentType<D>, relativePath:string):Promise<D> {
     const generic = await this.readGeneric<DocumentType<D>,DocumentItemType<D>>(type, relativePath)
     return this.getInflater<D>(type).inflate(this, generic)
   }
@@ -72,7 +72,7 @@ export abstract class Model<A extends string> {
    * in this model instance's in-memory cache
    * @param document 
    */
-  async write(document: Document<A, A>): Promise<void> {
+  async write(document: Document<DT, DI>): Promise<void> {
     const newHash = await this.computeNewHashIfNecessary(document);
     if (isDef(newHash)) {
       const storageParams = this.getStorageParams(document.type, document.itemTypes, document.relativePath);
@@ -89,14 +89,14 @@ export abstract class Model<A extends string> {
    * @param type 
    * @returns 
    */
-  getInflater<D extends Document<A,A>, T extends DocumentType<D> = DocumentType<D>>(type: T): DocumentInflater<D> {
+  getInflater<D extends Document<DT,DI>>(type: DT): DocumentInflater<D,DT,DI> {
     if (!(type in this.inflaters)) {
       throw new Error("no inflater found for type: "+type)
     }
     return this.inflaters[type] as any // this as-any hurts, but faith in the implementers needs to happen somewhere
   }
 
-  private async computeNewHashIfNecessary(document: Document<A, A>): Promise<string | undefined> {
+  private async computeNewHashIfNecessary(document: Document<DT, DI>): Promise<string | undefined> {
     const cachedHash = this.getCached(document.type, document.relativePath)?.hash;
     if (!isDef(cachedHash)) {
       return undefined
@@ -106,15 +106,15 @@ export abstract class Model<A extends string> {
     return newHash !== cachedHash ? newHash : undefined
   }
 
-  private getCached<T extends A, I extends A>(type: T, relativePath: string): DocumentCacheEntry<T, I> | undefined {
+  private getCached<T extends DT, I extends DI>(type: T, relativePath: string): DocumentCacheEntry<T, I> | undefined {
     return this.documentCache.getEntry(type, relativePath)
   }
 
-  private getItemTypes<T extends A, I extends A>(type:T):I[] {
-    return this.getInflater<Document<T,I>>(type).itemTypes
+  private getItemTypes<T extends DT, I extends DI>(type:T):I[] {
+    return this.getInflater<Document<T,I>>(type).itemTypes as I[]
   }
 
-  private getStorageParams<T extends A, I extends A>(type:T, itemTypes:I[], relativePath: string): DocumentStorageParams<A,T,I> {
+  private getStorageParams<T extends DT, I extends DI>(type:T, itemTypes:I[], relativePath: string): DocumentStorageParams<DT,DI,T,I> {
     return {
       type,
       itemTypes,
@@ -129,25 +129,25 @@ export abstract class Model<A extends string> {
 /**
  * A function that returns an appropriate model class when the basePath changes
  */
-export type ModelFactory<A extends string> = (basePath:string) => Model<A>
+export type ModelFactory<DT extends string, DI extends string> = (basePath:string) => Model<DT,DI>
 
 /* *********************************************************************************************************************
  * Internal utility classes
 ********************************************************************************************************************* */
 
-class DocumentCache<A extends string> {
-  readonly cache = {} as Record<A, Record<string, DocumentCacheEntry<A, A>>>;
+class DocumentCache<DT extends string, DI extends string> {
+  readonly cache = {} as Record<DT, Record<string, DocumentCacheEntry<DT, DI>>>;
 
-  getTypeCache<T extends A, I extends A>(type: T): Record<string, DocumentCacheEntry<T, I>> {
-    return this.cache[type] as any as Record<string, DocumentCacheEntry<T, I>>
+  getTypeCache<T extends DT, I extends DI>(type: T): Record<string, DocumentCacheEntry<T, I>> {
+    return this.cache[type] as Record<string, DocumentCacheEntry<T,I>>
   }
 
-  getEntry<T extends A, I extends A>(type: T, relativePath: string): DocumentCacheEntry<T, I> | undefined {
+  getEntry<T extends DT, I extends DI>(type: T, relativePath: string): DocumentCacheEntry<T, I> | undefined {
     const typeCache = this.getTypeCache<T, I>(type)
     return isDef(typeCache) ? typeCache[relativePath] : undefined
   }
 
-  setEntry(hash: string, document: Document<A, A>): void {
+  setEntry(hash: string, document: Document<DT, DI>): void {
     if (!(document.type in this.cache)) {
       this.cache[document.type] = {}
     }
@@ -156,7 +156,7 @@ class DocumentCache<A extends string> {
   }
 }
 
-interface DocumentCacheEntry<T extends string, I extends string> {
+interface DocumentCacheEntry<DT extends string, DI extends string> {
   hash: string
-  document: Document<T, I>
+  document: Document<DT, DI>
 }

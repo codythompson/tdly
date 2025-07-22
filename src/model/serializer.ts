@@ -7,16 +7,16 @@ import { Document, validateDocument } from "./document"
  * Used for checking if the cached version of a document has changed.
  * Used by models using text files for permanent storage.
  */
-export abstract class DocumentSerializer<A extends string> {
-  abstract serialize(document: Document<A,A>): string
+export abstract class DocumentSerializer<DT extends string, DI extends string> {
+  abstract serialize(document: Document<DT,DI>): string
   abstract deserializeToObject(content: string, relativePath:string): SimpleType
 
-  deserialize<T extends A, I extends A>(type:T, itemTypes:I[], content: string, relativePath:string): Document<T,I> {
+  deserialize<T extends DT, I extends DI>(type:T, itemTypes:I[], content: string, relativePath:string): Document<T,I> {
     const obj = this.deserializeToObject(content, relativePath)
     return this.validateDocument(type, itemTypes, obj)
   }
 
-  validateDocument<T extends A, I extends A>(type:T, itemTypes:I[], obj:SimpleType): Document<T,I> {
+  validateDocument<T extends DT, I extends DI>(type:T, itemTypes:I[], obj:SimpleType): Document<T,I> {
     if (!validateDocument(type, itemTypes, obj)) {
       // this isn't possible, in theory, because validateDocument should always throw when obj is not valid
       throw new Error("bug in validateDocument function")
@@ -24,12 +24,12 @@ export abstract class DocumentSerializer<A extends string> {
     return obj
   }
 
-  async computeHash(documentOrContent: Document<A,A> | string): Promise<string> {
+  async computeHash(documentOrContent: Document<DT,DI> | string): Promise<string> {
     const contentStr = isStr(documentOrContent) ? documentOrContent : this.serialize(documentOrContent);
     return await DocumentSerializer.computeHash(contentStr);
   }
 
-  async hasChanged(newDocument: Document<A,A> | string, previousHash?: string): Promise<boolean> {
+  async hasChanged(newDocument: Document<DT,DI> | string, previousHash?: string): Promise<boolean> {
     if (!isDef(previousHash)) {
       return false
     }

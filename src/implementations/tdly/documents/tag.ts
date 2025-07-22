@@ -1,5 +1,5 @@
 import { Typed } from "@typed/typed"
-import { isStrArr } from "../../../../typed/guards"
+import { isStrArr } from "../../../typed/guards"
 import { DocumentItem } from "@model/document"
 import { DocumentItemInflater, GenericDocumentInflater } from "@model/inflater"
 import { ItemPropertyMap } from "@model/properties"
@@ -23,7 +23,7 @@ export interface Tag extends DocumentItem<TagType> {
     aliases: string[]
 }
 
-export class TagItemInflater extends DocumentItemInflater<Tag> {
+export class TagItemInflater extends DocumentItemInflater<Tag,TagType> {
     readonly type = TagType
     inflateItem(_:any, item: DocumentItem<TagType>, props: ItemPropertyMap): Tag {
         return {

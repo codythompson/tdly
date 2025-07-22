@@ -1,4 +1,4 @@
-import { UIDocument } from "@display/text";
+import { UIDocument } from "@display/document";
 import { Document } from "@model/document";
 import { Typed } from "@typed/typed";
 

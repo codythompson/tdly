@@ -1,5 +1,8 @@
-import { PrimitiveType } from "./simple"
-import { Typed, TypeOf } from "./typed"
+import { isArr } from "./guards"
+import { PrimitiveType, PrimitiveTypeString } from "./simple"
+import { isOfType, Typed, TypeOf } from "./typed"
+
+export type OrArrOf<T> = T|(T[])
 
 export function mapToRecord<E, T extends string = string>(arr:E[], idFunc:(e:E)=>T):Record<T,E> {
   return Object.fromEntries(
@@ -37,4 +40,8 @@ export function contains(arr:PrimitiveType[], value:PrimitiveType):boolean {
 
 export function isOneOf<T extends string>(strings:T[], value:string):value is T {
   return contains(strings,value)
+}
+
+export function ensureArr<T>(value:T|T[]):T[] {
+  return isArr(value)? value : [value]
 }

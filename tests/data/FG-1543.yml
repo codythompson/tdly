@@ -1,0 +1,47 @@
+type: List
+name: FG-1543 Accurate Categorization of Endpoints with TPM Versions Lower than 2.0 in SecureSense and Endpoint Health Widget [Healthy Tech]
+note: make a task for migration so can be done asap separate.
+Items:
+  TPM Version Display in SecureSense Panel:
+    status: done?
+    questions:
+    - q: do we already have the TPM chip version in the DB (probably based on above)
+      a: it seems like TPM version is already displayed in SecureSense panel
+    - a: it is indeed in a nice column in endpoints.endpoint
+      q: is it in a nice column, or is it in a JSON column (i.e. manufacturer info or something)
+    existing:
+      FG-1933 - Display TPM Supported Information in SecureSense Panel:
+        - DONE
+        - list as cloned by FG-2192 DONE
+      FG-2415 - [E2E Tests] Add tests for TPM field in SecureSense page:
+        - In Progress (2025-07-14)
+      FG-2193 - Display TPM Supported Information in SecureSense Panel:
+        - BACKLOG
+        - Listed as clone of 2192, but encapsulates more work than just TPM version
+        - TPM enablement status is shown in the SecureSense panel (if available).
+        - TPM fields display fallback messaging when unsupported/unavailable.
+        - TPM data is included in endpoint exports.
+        - UI matches the structure and formatting of other SecureSense fields.
+  Accurate SecureBoot Status in Endpoint Health Widget:
+    status:
+      - not implemented / partially implemented
+    questions:
+      - q:
+      - a: It seems like filtering currently happens on the frontend only
+        q: what does the existing filter mechanism look like for endpoints (or other entities)?
+      - q: does the health widget display the counts directly from api data, or does it do it's own filter
+        a: likely coming from GET /endpoints items[].endpointProperties.hasSecureBootEnabled
+  TPM Version Filter:
+    status:
+      - not implemented
+      - need to check with UI team about filtering
+    existing:
+      FG-1934 - Add "TPM Disabled" to Endpoint Health Widget with Filtered Endpoint View:
+        - BACKLOG
+        - not implemented
+    questions:
+      - q: 
+      - q: do we/should we have existing backend filter logic
+        followup: should we add/modify that logic now
+  howtoRFC:
+    - find the RFC template in confluence

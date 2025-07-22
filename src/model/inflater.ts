@@ -1,5 +1,5 @@
 import { Typed } from "@typed/typed";
-import { Document, DocumentType, DocumentItemType, DocumentItem } from "./document";
+import { Document, DocumentItem } from "./document";
 import { Model } from "./model";
 import { toArrays, toRecord } from "@typed/collections";
 import { ItemPropertyMap, SimpleTypeMap } from "./properties";
@@ -7,13 +7,13 @@ import { ItemPropertyMap, SimpleTypeMap } from "./properties";
 /**
  * Converts a generic document item into a custom typed item
  */
-export abstract class DocumentItemInflater<D extends DocumentItem<string>, I extends DocumentItemType<D> = DocumentItemType<D>> implements Typed<I> {
-  abstract type:I
+export abstract class DocumentItemInflater<D extends DocumentItem<DI>, DI extends string> implements Typed<DI> {
+  abstract type:DI
   readonly propertySchema?:SimpleTypeMap
 
-  abstract inflateItem<A extends string>(model: Model<A>, item:DocumentItem<I>, parsedProperties:ItemPropertyMap):D
+  abstract inflateItem<T extends string, I extends DI>(model: Model<T,I>, item:DocumentItem<DI>, parsedProperties:ItemPropertyMap):D
 
-  parseProperties(item:DocumentItem<I>):ItemPropertyMap {
+  parseProperties(item:DocumentItem<DI>):ItemPropertyMap {
     return new ItemPropertyMap(item.properties, this.propertySchema)
   }
 }
@@ -22,18 +22,18 @@ export abstract class DocumentItemInflater<D extends DocumentItem<string>, I ext
  * Converts a generic document into a custom typed item
  */
 export abstract class DocumentInflater <
-  D extends Document<string, string>,
-  T extends DocumentType<D> = DocumentType<D>,
-  I extends DocumentItemType<D> = DocumentItemType<D>
-> implements Typed<T> {
-  abstract readonly type:T
-  readonly itemTypes: I[]
-  readonly itemInflaters: Record<I, DocumentItemInflater<DocumentItem<I>>>
+  D extends Document<DT, DI>,
+  DT extends string,
+  DI extends string
+> implements Typed<DT> {
+  abstract readonly type:DT
+  readonly itemTypes: DI[]
+  readonly itemInflaters: Record<DI, DocumentItemInflater<DocumentItem<DI>,DI>>
   readonly propertySchema?:SimpleTypeMap
 
-  constructor(itemInflaters:DocumentItemInflater<DocumentItem<I>>[]) {
+  constructor(itemInflaters:DocumentItemInflater<DocumentItem<DI>,DI>[]) {
     this.itemInflaters = toRecord(itemInflaters)
-    this.itemTypes = itemInflaters.map(i => i.type as I)
+    this.itemTypes = itemInflaters.map(i => i.type as DI)
   }
 
   /**
@@ -45,15 +45,15 @@ export abstract class DocumentInflater <
    * @param document 
    * @param inflatedItems 
    */
-  abstract inflateDocument<A extends string>(model: Model<A>, document:Document<T,I>, parsedProperties:ItemPropertyMap, inflatedItems:DocumentItem<I>[]):D
+  abstract inflateDocument(model: Model<string,string>, document:Document<DT,DI>, parsedProperties:ItemPropertyMap, inflatedItems:DocumentItem<DI>[]):D
 
-  inflate<A extends string>(model: Model<A>, document:Document<T,I>):D {
+  inflate(model: Model<DT,DI>, document:Document<DT,DI>):D {
     const items = this.getInflatedItems(model, document)
     const props = new ItemPropertyMap(document.properties, this.propertySchema)
     return this.inflateDocument(model, document, props, items)
   }
 
-  getInflatedItems<A extends I|string>(model: Model<A>, document:Document<T,I>):DocumentItem<I>[] {
+  getInflatedItems(model: Model<DT,DI>, document:Document<DT,DI>):DocumentItem<DI>[] {
     const inflaters = document.items.map(i => ({inflater:this.getItemInflater(i.type), i}))
     return inflaters.map(({inflater,i})=> {
       const props = inflater.parseProperties(i)
@@ -61,27 +61,27 @@ export abstract class DocumentInflater <
     })
   }
 
-  getItemInflater<DI extends DocumentItem<IT>, IT extends I>(itemType:IT):DocumentItemInflater<DI> {
+  getItemInflater(itemType:DI):DocumentItemInflater<DocumentItem<DI>,DI> {
     return this.itemInflaters[itemType] as any // this as-any hurts, but faith in the implementers needs to happen somewhere
   }
 
-  mapItems(items:DocumentItem<I>[]):Record<I,DocumentItem<I>[]> {
+  mapItems(items:DocumentItem<DI>[]):Record<DI,DocumentItem<DI>[]> {
     return toArrays(items)
   }
 }
 
-export class GenericDocumentInflater<T extends string, I extends string> extends DocumentInflater<Document<T,I>,T,I> {
+export class GenericDocumentInflater<DT extends string, DI extends string> extends DocumentInflater<Document<DT,DI>,DT,DI> {
 
-  constructor (readonly type: T, inflators:DocumentItemInflater<DocumentItem<I>>[]) {
+  constructor (readonly type: DT, inflators:DocumentItemInflater<DocumentItem<DI>,DI>[]) {
     super(inflators)
     this.type = type
   }
 
-  inflateDocument<A extends string>(_: Model<A>, document: Document<T, I>, __: ItemPropertyMap, items: DocumentItem<I>[]): Document<T,I> {
+  inflateDocument(_: Model<DT,DI>, document:Document<DT,DI>, __:ItemPropertyMap, items:DocumentItem<DI>[]):Document<DT,DI> {
+  // inflateDocument<DD extends Document<DT,DI>>(_: Model<DT,DI>, document: DD, __: ItemPropertyMap, items: DocumentItem<DI>[]): DD {
     return {
       ...document,
       items
     }
   }
-    
-  }
+}

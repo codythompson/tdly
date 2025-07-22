@@ -89,3 +89,22 @@ isStrArr.Nullable = function(value:any): value is string[] {
     }
     return true;
 }
+
+export function isOptionally<T>(guard:(value:any)=>value is T, value:any):value is T|undefined {
+    return !isDef(value) || guard(value)
+}
+
+export function isObjWithProp<K extends string,V>(guard:(propValue:any)=>propValue is V, obj:any, propKey:K):obj is {[ix in K]:V} {
+    return isObj(obj) && guard((obj as any)[propKey])
+}
+export function isObjWithOptionalProp<K extends string,V>(guard:(propValue:any)=>propValue is V, obj:any, propKey:K):obj is {[ix in K]?:V} {
+    return isObj(obj) && isOptionally(guard, (obj as any)[propKey])
+}
+
+export function assert<T>(guard:(value:any)=>value is T, value:any):value is T {
+    if (!guard(value)) {
+        throw new UnexpectedTypeError()
+    }
+    return true
+}
+

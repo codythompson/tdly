@@ -2,9 +2,9 @@ import yaml from "yaml"
 import { Document } from "../document";
 import { DocumentSerializer } from "../serializer";
 
-export class YamlGenericSerializer<A extends string> extends DocumentSerializer<A> {
+export class YamlGenericSerializer<DT extends string, DI extends string> extends DocumentSerializer<DT,DI> {
 
-  serialize(document: Document<A,A>): string {
+  serialize(document: Document<DT,DI>): string {
     delete (document as any).relativePath
     return yaml.stringify(document)
   }

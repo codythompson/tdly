@@ -4,7 +4,7 @@ import { DocumentSerializer } from "./serializer";
 /**
  * interface for reading and writing documents to and from permanent storage
  */
-export interface DocumentStorage<A extends string> {
+export interface DocumentStorage<DT extends string, DI extends string> {
   /**
    * Read a document of models from file (or network, db, etc.).
    * The main way to load models into memory.
@@ -12,7 +12,7 @@ export interface DocumentStorage<A extends string> {
    * @param type the model type of the document
    * @param relativePath the relative path to file (or maybe schema) containing the models to read/load
   */
-  read<T extends A, I extends A>(params: DocumentStorageParams<A,T,I>): Promise<Document<T,I>>
+  read<T extends DT, I extends DI>(params: DocumentStorageParams<DT,DI,T,I>): Promise<Document<T,I>>
 
   /**
    * Write a document of models to file (or db, rest API, etc.).
@@ -21,27 +21,27 @@ export interface DocumentStorage<A extends string> {
    * @param type the model type of the document
    * @param relativePath the relative path to file (or maybe schema) containing the models to read/load
   */
-  write<T extends A, I extends A>(params: DocumentStorageParams<A,T,I>, document: Document<T, I>): Promise<void>
+  write(params: DocumentStorageParams<DT,DI>, document: Document<DT, DI>): Promise<void>
 
   /**
    * Get a representation of the contents of the folder at the given basePath
    * @param params 
    */
-  list(params: DocumentStorageListParams<A>): Promise<Folder>
+  list(params: DocumentStorageListParams<DT,DI>): Promise<Folder>
 }
 
-export interface DocumentStorageParams<A extends string, T extends A, I extends A> {
+export interface DocumentStorageParams<DT extends string, DI extends string, T extends DT = DT, I extends DI = DI> {
   type: T,
   itemTypes: I[],
-  model: Model<A>
+  model: Model<DT,DI>
   basePath: string
   relativePath: string
-  serializer: DocumentSerializer<A>
+  serializer: DocumentSerializer<DT,DI>
 }
 
-export interface DocumentStorageListParams<A extends string> {
+export interface DocumentStorageListParams<DT extends string, DI extends string> {
   basePath: string
-  serializer: DocumentSerializer<A>
+  serializer: DocumentSerializer<DT,DI>
   recursive?: number|boolean
 }
 

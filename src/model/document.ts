@@ -16,7 +16,8 @@ export interface Document<T extends string, I extends string> extends DocumentIt
 
 export type AllDocumentTypes<D> = D extends Document<infer T, infer I> ? T|I : string
 export type DocumentType<D> = D extends Document<infer T, any> ? T : string
-export type DocumentItemType<D> = D extends Document<any, infer I> ? I : string | D extends DocumentItem<infer T> ? T : string
+export type DocumentItemType<D extends Document<string, string>> = D extends Document<any, infer I> ? I : string
+export type ItemType<D extends DocumentItem<string>> = D extends DocumentItem<infer T> ? T : string
 
 /**
  * 
