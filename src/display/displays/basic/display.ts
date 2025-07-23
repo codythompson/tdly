@@ -3,17 +3,6 @@ import { HeadingLevel, UIBlock, UIDocument, UIToken } from "@display/document";
 import { isDef, isObj } from "@typed/guards";
 
 export class BasicCLIDisplay extends SingleDocumentDisplay {
-  // displayMessge(message: UIDocument): Promise<void> {
-  //   return this.display(message)
-  // }
-
-  // display(document: UIDocument): Promise<void> {
-  //   this.printBorder("start")
-  //   this.printBlock(document.blocks)
-  //   this.printBorder("end")
-  //   return Promise.resolve()
-  // }
-
   renderBorder(headingLevel:HeadingLevel|"start"|"end"|undefined=undefined, topOrBot:"top"|"bot"="bot"):string|undefined {
     const isTop = topOrBot === "top"
     let border = isDef(headingLevel) ? borders[headingLevel] : undefined
