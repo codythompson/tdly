@@ -8,6 +8,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "debug": "tsx watch --inspect src/index.ts",
     "test": "vitest tests"
   },
   "devDependencies": {
