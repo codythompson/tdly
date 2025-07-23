@@ -36,14 +36,15 @@ export abstract class SingleDocumentDisplay<TC = string, BC = TC, DC = BC> imple
   }
 
   async render(): Promise<void> {
-    await this.clear()
-    const document = this.docStack[this.docStack.length]
+    await this.clear();
+    const document = this.docStack[this.docStack.length-1]
     if (!isDef(document)) {
       await this.writeRenderedDocument([])
     }
     const renderedBlocks = [] as (TC|BC)[]
     for (let block of document.content) {
-      renderedBlocks.push(...this.renderBlockContent(block))
+      const blockContent = this.renderBlockContent(block)
+      renderedBlocks.push(...this.renderBlock(block, blockContent))
     }
     const renderedLines = this.renderDocument(document, renderedBlocks)
     await this.writeRenderedDocument(renderedLines)

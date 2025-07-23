@@ -1,6 +1,5 @@
-import { SingleDocumentDisplay, Display } from "@display/display";
-import { DefaultHeadingLevel, HeadingLevel, UIBlock, UIBlockContent, UIDocument, UIToken } from "@display/document";
-import { ensureArr } from "@typed/collections";
+import { SingleDocumentDisplay } from "@display/display";
+import { DefaultHeadingLevel, HeadingLevel, UIBlock, UIDocument, UIToken } from "@display/document";
 import { isDef, isObj } from "@typed/guards";
 
 export class BasicCLIDisplay extends SingleDocumentDisplay {
@@ -35,7 +34,7 @@ export class BasicCLIDisplay extends SingleDocumentDisplay {
         .filter(isDef)
   }
 
-  renderDocument(document: UIDocument, renderedBlocks: string[]): string[] {
+  renderDocument(_: UIDocument, renderedBlocks: string[]): string[] {
     return [
       this.renderBorder("start"),
       ...renderedBlocks,

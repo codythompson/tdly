@@ -8,7 +8,8 @@ function wait (ms:number):Promise<void>
 
 const app = new TDLYApp()
 
-async function main ():Promise<void>
+export async function main ():Promise<void>
 {
+    console.log("elo")
     app.displayUIDocument(UIDocBuilder.Basic("hello", "world world"))
 }

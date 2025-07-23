@@ -36,6 +36,8 @@ export class UIDisplayableBuilder<P extends Displayable|undefined, D extends Dis
 
   add<S extends UIDisplayableBuilder<P,D> = typeof this>(...child:(D["content"])):S {
     assert(isArr, this.displayable.content)
+    assert(isArr, child)
+    this.displayable.content.push(...child)
     this._lastAdded = child
     return this as any as S
   }
