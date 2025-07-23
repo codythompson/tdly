@@ -46,6 +46,6 @@ export interface DocumentStorageListParams<DT extends string, DI extends string>
 }
 
 export interface Folder {
-  folders: Set<string>
-  documents: Set<string>
+  folders: string[]
+  documents: string[]
 }

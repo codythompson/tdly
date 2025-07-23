@@ -32,6 +32,11 @@ export class ReadWriteApp<DT extends string, DI extends string> {
     await this.catchAllAsync(() => this._displayUIDocment(document))
   }
 
+  setBasePath(basePath:string):void {
+    const newModel = this.modelFactory(basePath)
+    this.setModel(newModel)
+  }
+
   setModel(model:Model<DT,DI>):void {
     this.activeModel = model;
   }

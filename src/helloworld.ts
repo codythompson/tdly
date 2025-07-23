@@ -11,5 +11,5 @@ const app = new TDLYApp()
 export async function main ():Promise<void>
 {
     console.log("elo")
-    app.displayUIDocument(UIDocBuilder.Basic("hello", "world world"))
+    app.showDirectory("./")
 }

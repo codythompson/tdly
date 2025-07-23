@@ -1,5 +1,5 @@
 import { SingleDocumentDisplay } from "@display/display";
-import { DefaultHeadingLevel, HeadingLevel, UIBlock, UIDocument, UIToken } from "@display/document";
+import { HeadingLevel, UIBlock, UIDocument, UIToken } from "@display/document";
 import { isDef, isObj } from "@typed/guards";
 
 export class BasicCLIDisplay extends SingleDocumentDisplay {
@@ -14,9 +14,9 @@ export class BasicCLIDisplay extends SingleDocumentDisplay {
   //   return Promise.resolve()
   // }
 
-  renderBorder(headingLevel:HeadingLevel|"start"|"end"=DefaultHeadingLevel, topOrBot:"top"|"bot"="bot"):string|undefined {
+  renderBorder(headingLevel:HeadingLevel|"start"|"end"|undefined=undefined, topOrBot:"top"|"bot"="bot"):string|undefined {
     const isTop = topOrBot === "top"
-    let border = borders[headingLevel]
+    let border = isDef(headingLevel) ? borders[headingLevel] : undefined
     if (isObj(border)) {
       border=border[topOrBot]
     }

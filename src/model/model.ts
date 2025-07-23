@@ -2,7 +2,7 @@ import { isDef } from "@typed/guards"
 import { Document, DocumentItemType, DocumentType } from "./document"
 import { DocumentInflater } from "./inflater"
 import { DocumentSerializer } from "./serializer"
-import { DocumentStorage, DocumentStorageParams } from "./storage"
+import { DocumentStorage, DocumentStorageListParams, DocumentStorageParams, Folder } from "./storage"
 
 /**
  * An abstract representation of the todo list app's data model.
@@ -82,6 +82,10 @@ export class Model<DT extends string = string, DI extends string = string> {
     }
   }
 
+  async list(): Promise<Folder> {
+    return await this.storage.list(this.getStorageListParams())
+  }
+
   /**
    * get the inflater associated with the given item type
    * 
@@ -121,6 +125,13 @@ export class Model<DT extends string = string, DI extends string = string> {
       model: this,
       basePath: this.basePath,
       relativePath,
+      serializer: this.serializer
+    }
+  }
+
+  private getStorageListParams():DocumentStorageListParams<DT,DI> {
+    return {
+      basePath: this.basePath,
       serializer: this.serializer
     }
   }

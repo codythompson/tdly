@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, readdir } from "fs/promises";
 import path from "path";
 import { Document } from "../document";
 import { DocumentStorage, DocumentStorageListParams, DocumentStorageParams, Folder } from "../storage";
@@ -21,7 +21,11 @@ export class LocalDocumentStorage<DT extends string, DI extends string> implemen
     await writeFile(filePath, contents, "utf-8");
   }
 
-  list(params: DocumentStorageListParams<DT,DI>): Promise<Folder> {
-    throw new Error("Method not implemented.");
+  async list({basePath}: DocumentStorageListParams<DT,DI>): Promise<Folder> {
+    const files = await readdir(basePath, {withFileTypes:true})
+    return {
+      documents: files.filter(f => f.isDirectory()).map(f => f.name),
+      folders: files.filter(f => f.isFile()).map(f => f.name),
+    }
   }
 }

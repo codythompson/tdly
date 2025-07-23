@@ -3,7 +3,7 @@
 // export interface UIElement<T extends string = string> extends Typed<T> {
 
 import { contains } from "@typed/collections"
-import { isArr, isObjWithOptionalProp, isObjWithProp, isStr } from "@typed/guards"
+import { isArr, isDef, isObjWithOptionalProp, isObjWithProp, isStr } from "@typed/guards"
 import { enumish } from "@typed/simple"
 import { isOfType, isTyped, Typed } from "@typed/typed"
 import { Display } from "./display"
@@ -30,7 +30,6 @@ export function isUIBlockContent(value:any):value is string|UIToken|UIBlock {
   return isUIBlock(value)
 }
 export type HeadingLevel = 0|1|2|3|4|5|6
-export const DefaultHeadingLevel = 6
 
 
 /**
@@ -98,7 +97,7 @@ export function isDisplayable(value:any):value is Displayable<string> {
   return isTyped(value) &&
     isStyleable(value) &&
     isKnowable(value) &&
-    isObjWithProp(isArr, value, "content")
+    isObjWithProp(isDef, value, "content")
 }
 export function isDisplayableOfType<T extends string, C = any>(type:T, contentGuard:(v:any)=>v is C, value:any):value is Displayable<T,C> {
   return isDisplayable(value) &&
