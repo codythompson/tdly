@@ -3,10 +3,10 @@
 // export interface UIElement<T extends string = string> extends Typed<T> {
 
 import { contains } from "@typed/collections"
-import { isArr, isDef, isObjWithOptionalProp, isObjWithProp, isStr } from "@typed/guards"
-import { enumish } from "@typed/simple"
+import { isArr, isArrOf, isDef, isObjWithOptionalProp, isObjWithProp, isStr } from "@typed/guards"
+import { enumish, isEnumishGuard } from "@typed/simple"
 import { isOfType, isTyped, Typed } from "@typed/typed"
-import { Display } from "./display"
+import { isSet } from "util/types"
 
 export interface UIToken extends Displayable<"UIToken", string> { }
 export function isUIToken(value:any):value is UIToken {
@@ -90,13 +90,29 @@ export function isStyle(value:any):value is Style {
   return isStyleDef(value) || isTextStyle(value)
 }
 
-export interface Displayable<T extends string = string, C = any> extends Typed<T>, Knowable, Styleable {
+export interface Statable {
+  // state?: Set<DisplayableState>
+  state?: DisplayableState
+}
+export function isStatable(value:any): value is Statable {
+  return isObjWithOptionalProp(
+    // (v => !isDef(v) || (isSet(v) && isArrOf(isEnumishGuard(DisplayableState), [...v]))) as (v:any) => v is Set<DisplayableState>|undefined,
+    isEnumishGuard(DisplayableState),
+    value,
+    "state"
+  )
+}
+export const DisplayableState = enumish("selected") // i.e. hovered, focused?
+export type DisplayableState = keyof typeof DisplayableState
+
+export interface Displayable<T extends string = string, C = any> extends Typed<T>, Knowable, Styleable, Statable {
   content: C
 }
 export function isDisplayable(value:any):value is Displayable<string> {
   return isTyped(value) &&
     isStyleable(value) &&
     isKnowable(value) &&
+    isStatable(value) &&
     isObjWithProp(isDef, value, "content")
 }
 export function isDisplayableOfType<T extends string, C = any>(type:T, contentGuard:(v:any)=>v is C, value:any):value is Displayable<T,C> {

@@ -1,4 +1,4 @@
-import { BaseStyles, Style, UIDocument } from "@display/document";
+import { BaseStyles, Style, UIDocument } from "@display/displayable";
 import { UIDocBuilder } from "./docbuilder";
 
 export class AppError extends Error {

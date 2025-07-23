@@ -1,4 +1,3 @@
-import { UIDocBuilder } from "@display/docbuilder";
 import { TDLYApp } from "./implementations/tdly/cli/app";
 
 function wait (ms:number):Promise<void>

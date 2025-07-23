@@ -4,7 +4,7 @@ import { Display } from "./display";
 import { DocumentView } from "./view";
 import { isDef } from "../typed/guards";
 import { AppError, AppNotReady } from "./error";
-import { UIDocument } from "./document";
+import { UIDocument } from "./displayable";
 
 export class ReadWriteApp<DT extends string, DI extends string> {
   protected activeModel?:Model<DT,DI>

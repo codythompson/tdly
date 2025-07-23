@@ -1,6 +1,7 @@
 import { SingleDocumentDisplay } from "@display/display";
-import { HeadingLevel, UIBlock, UIDocument, UIToken } from "@display/document";
-import { isDef, isObj } from "@typed/guards";
+import { DisplayableState, HeadingLevel, isUIToken, UIBlock, UIDocument, UIToken } from "@display/displayable";
+import { UnexpectedTypeError } from "@typed/error";
+import { isDef, isObj, isStr } from "@typed/guards";
 
 export class BasicCLIDisplay extends SingleDocumentDisplay {
   renderBorder(headingLevel:HeadingLevel|"start"|"end"|undefined=undefined, topOrBot:"top"|"bot"="bot"):string|undefined {
@@ -32,14 +33,26 @@ export class BasicCLIDisplay extends SingleDocumentDisplay {
       .filter(isDef)
   }
 
-  renderToken(token: UIToken | string): string {
-    if (isObj(token)) {
-      return token.content
+  protected formatWrap(state:DisplayableState|undefined, str:string):string {
+    if (!isDef(state)) {
+      return str
     }
-    return token
+    const [a="",b=""] = formattting[state]
+    return `${a}${str}${b}`
+  }
+
+  renderToken(token: UIToken | string): string {
+    if (isUIToken(token)) {
+      return this.formatWrap(token.state, token.content)
+    }
+    if (isStr(token)) {
+      return token
+    }
+    throw new UnexpectedTypeError()
   }
 
   writeRenderedDocument(lines:string[]):void {
+    console.clear()
     lines.map(line => console.log(line))
   }
 }
@@ -57,4 +70,13 @@ const borders:Record<HeadingLevel|"start"|"end", undefined|string|{top?:string,b
   5: "--------",
   6: "-",
   end: "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||",
+}
+
+const formatCode = {
+  reset: "\x1b[0m",
+  invert: "\x1b[7m"
+}
+
+const formattting:Record<DisplayableState, [string,string]> = {
+  [DisplayableState.selected]: [formatCode.invert, formatCode.reset]
 }

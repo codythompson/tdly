@@ -1,5 +1,5 @@
 import { assert, isArr, isDef, isStr } from "@typed/guards"
-import { Displayable, HeadingLevel, isBaseStyle, isStyleDef, isUIBlock, isUIBlockContent, isUIToken, Style, StyleDef, UIBlock, UIBlockContent, UIDocument, UIToken } from "./document"
+import { Displayable, DisplayableState, HeadingLevel, isBaseStyle, isStyleDef, isUIBlock, isUIBlockContent, isUIToken, Style, StyleDef, UIBlock, UIBlockContent, UIDocument, UIToken } from "./displayable"
 
 export class UIDisplayableBuilder<P extends Displayable|undefined, D extends Displayable> {
   protected _lastAdded:D["content"][number]|undefined
@@ -21,6 +21,11 @@ export class UIDisplayableBuilder<P extends Displayable|undefined, D extends Dis
     return this as any as S
   }
 
+  select<S extends UIDisplayableBuilder<P,D> = typeof this>():S {
+    this.displayable.state = DisplayableState.selected
+    return this as any as S
+  }
+
   setStyle<K extends keyof StyleDef, V extends StyleDef[K] = StyleDef[K], S extends UIDisplayableBuilder<P,D> = typeof this>(prop:K, value:V):S {
     if (!isDef(this.displayable.style)) {
       this.displayable.style = {}
@@ -37,8 +42,8 @@ export class UIDisplayableBuilder<P extends Displayable|undefined, D extends Dis
   add<S extends UIDisplayableBuilder<P,D> = typeof this>(...child:(D["content"])):S {
     assert(isArr, this.displayable.content)
     assert(isArr, child)
-    this.displayable.content.push(...child)
-    this._lastAdded = child
+    this.displayable.content.push(...child as [])
+    this._lastAdded = child[child.length-1]
     return this as any as S
   }
 

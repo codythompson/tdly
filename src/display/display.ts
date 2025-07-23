@@ -1,6 +1,6 @@
 import { isDef } from "@typed/guards";
 import { EventManager } from "./event";
-import { isUIBlock, UIBlock, UIDocument, UIToken } from "./document";
+import { isUIBlock, UIBlock, UIDocument, UIToken } from "./displayable";
 
 type OrPromise<T> = Promise<T>|T
 

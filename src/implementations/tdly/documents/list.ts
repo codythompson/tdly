@@ -4,7 +4,7 @@ import { DocumentInflater, DocumentItemInflater } from "@model/inflater"
 import { Model } from "@model/model"
 import { ItemPropertyMap, SimpleTypeMap } from "@model/properties"
 import { DocumentView } from "@display/view"
-import { UIBlock, UIDocument } from "@display/document"
+import { UIBlock, UIDocument } from "@display/displayable"
 import { UIDocBuilder } from "@display/docbuilder"
 
 export const ListType = "List"

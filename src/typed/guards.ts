@@ -101,6 +101,18 @@ export function isObjWithOptionalProp<K extends string,V>(guard:(propValue:any)=
     return isObj(obj) && isOptionally(guard, (obj as any)[propKey])
 }
 
+export function isArrOf<T>(guard:(element:any)=>element is T,value:any):value is T[] {
+    if (!isArr(value)) {
+        return false
+    }
+    for (let e of value) {
+        if (!guard(e)) {
+            return false
+        }
+    }
+    return true
+}
+
 export function assert<T>(guard:(value:any)=>value is T, value:any):value is T {
     if (!guard(value)) {
         throw new UnexpectedTypeError()

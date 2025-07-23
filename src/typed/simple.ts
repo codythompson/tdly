@@ -1,3 +1,4 @@
+import { isOneOf } from "./collections";
 import { UnexpectedTypeError } from "./error";
 import { isArr, isBool, isDef, isNum, isObj, isStr } from "./guards";
 
@@ -50,3 +51,10 @@ export function enumish<K extends string>(...keys:K[]):Enumish<K> {
     return Object.fromEntries(keys.map(k => [k,k])) as Record<K,K>
 }
 export type Enumish<K extends string> = Record<K,K>;
+export function enumerate<K extends string>(enumish:Enumish<K>):K[] {
+    return Object.values(enumish)
+}
+
+export function isEnumishGuard<K extends string>(enumish:Enumish<K>):(value:string) => value is keyof Enumish<K> {
+    return (value) => isOneOf(enumerate(enumish), value)
+}
