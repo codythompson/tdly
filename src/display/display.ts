@@ -5,7 +5,7 @@ import { isUIBlock, UIBlock, UIDocument, UIToken } from "./displayable";
 type OrPromise<T> = Promise<T>|T
 
 export interface Display {
-  readonly events:EventManager
+  readonly events:EventManager<string>
 
   clear(): OrPromise<void>
   push(document: UIDocument): void

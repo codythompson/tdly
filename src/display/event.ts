@@ -1,10 +1,10 @@
 import { Typed } from "@typed/typed"
 import { SimpleType } from "@typed/simple"
 
-export class EventManager {
-  readonly handlers = {} as Record<string,EventHandler<string>[]>
+export class EventManager<K extends string> {
+  readonly handlers = {} as Record<K,EventHandler<K>[]>
 
-  on(event:string, handler:EventHandler):EventHandlerHandle {
+  on<EK extends K>(event:EK, handler:EventHandler):EventHandlerHandle {
     if (!(event in this.handlers)) {
       this.handlers[event] = []
     }
@@ -16,12 +16,12 @@ export class EventManager {
     }
   }
 
-  stop({type,index}:EventHandlerHandle) {
+  stop<EK extends K>({type,index}:EventHandlerHandle<EK>) {
     this.handlers[type] = this.handlers[type]
       .filter((_,i) => i !== index)
   }
 
-  send(event:Event): void {
+  send<EK extends K>(event:Event<EK>): void {
     if (!(event.type in this.handlers)) {
       return
     }

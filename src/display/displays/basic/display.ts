@@ -4,9 +4,78 @@ import { UnexpectedTypeError } from "@typed/error";
 import { isDef, isObj, isStr } from "@typed/guards";
 
 export class BasicCLIDisplay extends SingleDocumentDisplay {
+
+  constructor(
+    public borders:Record<HeadingLevel|"start"|"end", undefined|string|{top?:string,bot?:string}> = DEFAULT_BORDERS,
+    public formatting:Record<DisplayableState, [string,string]> = DEFAULT_FORMATTING
+  ) {
+    super()
+    this.setupInputHandling()
+  }
+
+  private setupInputHandling()
+  {
+    process.stdin.setRawMode(true)
+    process.stdin.resume()
+    process.stdin.setDefaultEncoding("utf8")
+
+    process.stdin.on("data", data => this.handleInput(data))
+
+  }
+
+  private cleanupInputHandling():void
+  {
+    process.stdin.setRawMode(false)
+    process.exit()
+  }
+
+  private handleInput(data:Buffer):void
+  {
+    const str = data.toString();
+    // for (let c of str) {
+      // this.handleInputKey(c)
+    // }
+    this.handleInputKey(str);
+  }
+
+  private handleInputKey(char:string):void
+  {
+    switch (char) {
+
+      case 'q':
+      case '\u0003':
+        this.cleanupInputHandling()
+        break;
+
+      case 'k':
+      case '\u001B[A':
+        this.events.send({
+          type: "up",
+          message: char
+        })
+        break;
+
+      case 'j':
+      case '\u001B[B':
+        this.events.send({
+          type: "down",
+          message: char
+        })
+        break;
+
+      case '\r':
+        this.events.send({
+          type: "select",
+          message: char
+        })
+        break;
+    }
+
+  }
+
   renderBorder(headingLevel:HeadingLevel|"start"|"end"|undefined=undefined, topOrBot:"top"|"bot"="bot"):string|undefined {
     const isTop = topOrBot === "top"
-    let border = isDef(headingLevel) ? borders[headingLevel] : undefined
+    let border = isDef(headingLevel) ? DEFAULT_BORDERS[headingLevel] : undefined
     if (isObj(border)) {
       border=border[topOrBot]
     }
@@ -37,7 +106,7 @@ export class BasicCLIDisplay extends SingleDocumentDisplay {
     if (!isDef(state)) {
       return str
     }
-    const [a="",b=""] = formattting[state]
+    const [a="",b=""] = DEFAULT_FORMATTING[state]
     return `${a}${str}${b}`
   }
 
@@ -57,7 +126,7 @@ export class BasicCLIDisplay extends SingleDocumentDisplay {
   }
 }
 
-const borders:Record<HeadingLevel|"start"|"end", undefined|string|{top?:string,bot?:string}> = {
+export const DEFAULT_BORDERS:Record<HeadingLevel|"start"|"end", undefined|string|{top?:string,bot?:string}> = {
   start: "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||",
   0: "____________________________________________________________________________________________________",
   1: {
@@ -72,11 +141,11 @@ const borders:Record<HeadingLevel|"start"|"end", undefined|string|{top?:string,b
   end: "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||",
 }
 
-const formatCode = {
+export const FORMAT_CODE = {
   reset: "\x1b[0m",
   invert: "\x1b[7m"
 }
 
-const formattting:Record<DisplayableState, [string,string]> = {
-  [DisplayableState.selected]: [formatCode.invert, formatCode.reset]
+export const DEFAULT_FORMATTING:Record<DisplayableState, [string,string]> = {
+  [DisplayableState.selected]: [FORMAT_CODE.invert, FORMAT_CODE.reset]
 }

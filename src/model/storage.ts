@@ -1,10 +1,12 @@
-import { Document } from "./document"
+import { Document, DocumentItem } from "./document"
 import { Model } from "./model";
 import { DocumentSerializer } from "./serializer";
 /**
  * interface for reading and writing documents to and from permanent storage
  */
 export interface DocumentStorage<DT extends string, DI extends string> {
+  getPath(basePath:string,relativePath:string):string
+
   /**
    * Read a document of models from file (or network, db, etc.).
    * The main way to load models into memory.
@@ -45,7 +47,12 @@ export interface DocumentStorageListParams<DT extends string, DI extends string>
   recursive?: number|boolean
 }
 
-export interface Folder {
+export interface Folder extends Document<"Folder", "File"> {
   folders: string[]
   documents: string[]
+}
+
+export interface File extends DocumentItem<"File"> {
+  name: string
+  isDirectory: boolean
 }

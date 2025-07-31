@@ -119,4 +119,8 @@ export function assert<T>(guard:(value:any)=>value is T, value:any):value is T {
     }
     return true
 }
+export function asserted<T>(guard:(value:any)=>value is T, value:any):T {
+    assert(guard, value)
+    return value as T
+}
 

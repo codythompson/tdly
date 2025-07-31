@@ -24,8 +24,21 @@ export class LocalDocumentStorage<DT extends string, DI extends string> implemen
   async list({basePath}: DocumentStorageListParams<DT,DI>): Promise<Folder> {
     const files = await readdir(basePath, {withFileTypes:true})
     return {
-      documents: files.filter(f => f.isDirectory()).map(f => f.name),
-      folders: files.filter(f => f.isFile()).map(f => f.name),
+      type: "Folder",
+      name: `Folder (${basePath})`,
+      itemTypes: ["File"],
+      relativePath: "",
+      properties: {},
+      items: files.filter(f => f.isDirectory() || f.isFile())
+        .map(f => ({name:f.name, isDirectory:f.isDirectory()}))
+        .map(({name,isDirectory}) => ({
+          type: "File",
+          name,
+          isDirectory,
+          properties: {}
+        })),
+      documents: files.filter(f => f.isFile()).map(f => f.name),
+      folders: files.filter(f => f.isDirectory()).map(f => f.name),
     }
   }
 }
