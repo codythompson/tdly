@@ -7,7 +7,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && tsc-alias",
-    "dev": "bash scripts/dev.sh",
+    "watch": "nodemon --no-stdin --watch src -e ts --exec \"npm run build && node dist/index.js\"",
     "debug": "tsx watch --inspect src/index.ts",
     "test": "vitest tests"
   },
