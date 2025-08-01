@@ -68,11 +68,12 @@ export class TDLYApp extends ReadWriteApp<AllDocumentTypes, AllItemTypes> {
   }
 
   async showDirectory(path:string):Promise<void> {
-    // if (!isOfType("Folder", this.activeDoc) || this.getModel().basePath != path)
-    // {
+    const notLoaded = !isOfType("Folder", this.activeDoc) || this.getModel().basePath != path
+    if (notLoaded)
+    {
       this.setBasePath(path)
       this.activeDoc = await this.getModel().list()
-    // }
+    }
     const {folders, documents} = this.activeDoc as Folder
     const docbuilder = UIDocBuilder.start()
       .addBlock({
