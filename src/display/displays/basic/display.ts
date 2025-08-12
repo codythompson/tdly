@@ -32,9 +32,6 @@ export class BasicCLIDisplay extends SingleDocumentDisplay {
   private handleInput(data:Buffer):void
   {
     const str = data.toString();
-    // for (let c of str) {
-      // this.handleInputKey(c)
-    // }
     this.handleInputKey(str);
   }
 
@@ -59,6 +56,22 @@ export class BasicCLIDisplay extends SingleDocumentDisplay {
       case '\u001B[B':
         this.events.send({
           type: "down",
+          message: char
+        })
+        break;
+
+      case 'h':
+      case '\u001B[D':
+        this.events.send({
+          type: "left",
+          message: char
+        })
+        break;
+
+      case 'l':
+      case '\u001B[C':
+        this.events.send({
+          type: "right",
           message: char
         })
         break;

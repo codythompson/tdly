@@ -8,7 +8,6 @@ import { YamlGenericSerializer } from "@model/serializers/yaml";
 import { UIDocBuilder } from "@display/docbuilder";
 import { DisplayableState } from "@display/displayable";
 import { Folder } from "@model/storage";
-import { isDef } from "@typed/guards";
 import { isOfType } from "@typed/typed";
 import { AppError } from "@display/error";
 
@@ -24,6 +23,11 @@ export class TDLYApp extends ReadWriteApp<AllDocumentTypes, AllItemTypes> {
     this.display.events.on("up", () => this.moveCursor(-1))
     this.display.events.on("down", () => this.moveCursor(1))
     this.display.events.on("select", () => this.selectUnderCursor())
+    this.display.events.on("left", () => this.directoryUp())
+  }
+
+  isDirMode(activeDoc = this.activeDoc):activeDoc is Folder {
+    return isOfType("Folder", activeDoc)
   }
 
   protected moveCursor(by:number):void {
@@ -46,7 +50,7 @@ export class TDLYApp extends ReadWriteApp<AllDocumentTypes, AllItemTypes> {
     }
     this.busy = true
 
-    if (isOfType("Folder", this.activeDoc)) {
+    if (this.isDirMode(this.activeDoc)) {
       const {folders, documents} = this.activeDoc
       if (this.cursor < folders.length)
       {
@@ -60,6 +64,16 @@ export class TDLYApp extends ReadWriteApp<AllDocumentTypes, AllItemTypes> {
         await this.displayUIDocument(new AppError("index out of bounds", `selected an item at an index that is out of bounds`).compile())
       }
     }
+    this.busy = false
+  }
+
+  protected async directoryUp():Promise<void> {
+    if (this.busy || !this.isDirMode()) {
+      return
+    }
+    this.busy = true
+
+    await this.showDirectory(this.getModel().storage.getPath(this.getModel().basePath, ".."))
     this.busy = false
   }
 
@@ -77,13 +91,13 @@ export class TDLYApp extends ReadWriteApp<AllDocumentTypes, AllItemTypes> {
     const {folders, documents} = this.activeDoc as Folder
     const docbuilder = UIDocBuilder.start()
       .addBlock({
-        content: ["DIRECTORY"],
-        headingLevel: 1
+        content: [`DIRECTORY${this.busy? " <busy>": ""}`, `[h] to go up a level`],
+        headingLevel: 2
       })
     this.totalSelectable = folders.length+documents.length
     folders.forEach((v,i) => docbuilder.addToken({content:`${v}/`, state:this.getState(i)}))
     documents.forEach((v,i) => docbuilder.addToken({content:`${v}`, state:this.getState(i+folders.length)}))
-    this.displayUIDocument(docbuilder.finish())
+    await this.displayUIDocument(docbuilder.finish())
   }
 
   protected static makeModel(basePath:string):Model<AllDocumentTypes, AllItemTypes> {
